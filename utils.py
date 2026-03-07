@@ -19,6 +19,7 @@ from constants import (
     MAP_MAZE,
     MAP_CORRIDORS,
     MAP_RANDOM,
+    BLOCK_GOAL,
 )
 
 State = Tuple[int, int]
@@ -105,6 +106,8 @@ def get_predefined_map(
         return _map_corridors(rows, cols)
     if name == MAP_RANDOM:
         return _map_random(rows, cols)
+    if name == BLOCK_GOAL:
+        return _blocked_goal(rows, cols)
     raise ValueError(f"Unknown map name: '{name}'")
 
 
@@ -176,6 +179,33 @@ def _map_random(rows: int, cols: int, density: float = 0.25) -> dict:
                     obstacles.add((r, c))
     return {"rows": rows, "cols": cols, "start": start, "goal": goal,
             "obstacles": list(obstacles)}
+
+
+def _blocked_goal(rows: int, cols: int, ) -> dict:
+    """Square wall Covered on all sides with goal in the middle."""
+
+    obstacles = set()
+    mid_r, mid_c = rows // 2, cols // 2
+    # Define how far the wall extends from the center
+    r_radius = 3
+    c_radius = 5
+    for dr in range(-r_radius, r_radius + 1):
+        for dc in range(-c_radius, c_radius + 1):
+            r, c = mid_r + dr, mid_c + dc
+            # Add obstacles on the border of the square
+            if dr == -r_radius or dr == r_radius or dc == -c_radius or dc == c_radius:
+                # Ensure the wall is actually within the grid
+                if 0 <= r < rows and 0 <= c < cols:
+                    obstacles.add((r, c))
+
+    start = (1, 1)
+    goal  = (mid_r, mid_c)
+    obstacles.discard(start)
+    obstacles.discard(goal)
+
+    return {"rows": rows, "cols": cols, "start": start, "goal": goal,
+        "obstacles": list(obstacles)}
+
 
 
 # ---------------------------------------------------------------------------
